@@ -1,11 +1,13 @@
 package com.example.cameraxdemo
 
+import android.graphics.Point
 import android.graphics.SurfaceTexture
 import android.opengl.EGL14
 import android.opengl.GLES20
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Message
+import android.util.Log
 import android.view.TextureView
 import java.nio.FloatBuffer
 import javax.microedition.khronos.egl.EGL10
@@ -33,6 +35,8 @@ class Render : SurfaceTexture.OnFrameAvailableListener {
 
     fun init(textureView: TextureView, oesTextureId: Int) {
         mTextureView = textureView
+        getFiltersStartPoints(mTextureView!!.width, mTextureView!!.height)
+
         mOESTextureId = oesTextureId
         mHandlerThread = HandlerThread("Renderer Thread")
         mHandlerThread!!.start()
@@ -123,11 +127,29 @@ class Render : SurfaceTexture.OnFrameAvailableListener {
             mOESSurfaceTexture!!.getTransformMatrix(transformMatrix)
         }
         mEgl!!.eglMakeCurrent(mEGLDisplay, mEglSurface, mEglSurface, mEGLContext)
-        GLES20.glViewport(0, 0, mTextureView!!.width, mTextureView!!.height)
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
         GLES20.glClearColor(1f, 1f, 0f, 0f)
-        mFilterEngine!!.drawTexture(transformMatrix)
+        for (i in 0 until 9) {
+            GLES20.glViewport(
+                mFiltersStartPoints!![i].x, mFiltersStartPoints!![i].y,
+                mTextureView!!.width / 4, mTextureView!!.height / 4)
+            mFilterEngine!!.drawTexture(transformMatrix)
+        }
         mEgl!!.eglSwapBuffers(mEGLDisplay, mEglSurface)
+    }
+
+    private var mFiltersStartPoints:MutableList<Point>? = mutableListOf()
+    private fun getFiltersStartPoints(width: Int, height: Int) {
+        val offsetW = width / 24
+        val offsetH = height / 24
+        for (i in 0 until 9) {
+            val index = i / 9
+            val offX = offsetW + index * width + (i % 3) * width / 3
+            val offY = offsetH + (2 - (i % 9) / 3) * height / 3
+            mFiltersStartPoints?.add(Point(offX, offY))
+        }
+
+        Log.d(TAG, "getFiltersStartPoints: mFiltersStartPoints = ${mFiltersStartPoints.toString()}")
     }
 
     override fun onFrameAvailable(surfaceTexture: SurfaceTexture) {
@@ -149,6 +171,7 @@ class Render : SurfaceTexture.OnFrameAvailableListener {
         private val MSG_RENDER = 2
         private val MSG_DEINIT = 3
         private val MSG_INIT_SURFACE = 4
-    }
 
+        const val TAG = "Render"
+    }
 }
