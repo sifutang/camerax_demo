@@ -37,5 +37,4 @@ hs_err_pid*
 /captures
 .externalNativeBuild
 .cxx
-app/build
 >>>>>>> init proj

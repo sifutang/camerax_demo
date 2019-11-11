@@ -1,7 +1,7 @@
-#Sun Nov 10 23:41:09 CST 2019
-base.0=/Users/alaiye/Desktop/CameraXDemo/app/build/intermediates/dex/debug/mergeExtDexDebug/classes.dex
+#Mon Nov 11 10:10:46 CST 2019
+base.0=/home/android/AndroidStudioProjects/camerax_demo/app/build/intermediates/dex/debug/mergeExtDexDebug/classes.dex
 path.1=classes.dex
 renamed.1=classes2.dex
 path.0=classes.dex
 renamed.0=classes.dex
-base.1=/Users/alaiye/Desktop/CameraXDemo/app/build/intermediates/dex/debug/mergeProjectDexDebug/classes.dex
+base.1=/home/android/AndroidStudioProjects/camerax_demo/app/build/intermediates/dex/debug/mergeProjectDexDebug/classes.dex
