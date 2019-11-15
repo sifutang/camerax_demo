@@ -12,6 +12,7 @@ import androidx.camera.core.Preview
 import androidx.camera.core.PreviewConfig
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.example.cameraxdemo.util.TextResourceReader
 
 class MainActivity : AppCompatActivity() {
 
@@ -108,7 +109,7 @@ class MainActivity : AppCompatActivity() {
     private fun startGlContext(surfaceTexture: SurfaceTexture) {
         if (mOESTextureId == -1) {
             mOESTextureId = TextureDrawer.createOESTextureObject()
-            mRender.init(mTextureView, mOESTextureId)
+            mRender.init(applicationContext, mTextureView, mOESTextureId)
             mRender.initOESTexture(surfaceTexture)
         }
     }

@@ -1,5 +1,6 @@
 package com.example.cameraxdemo
 
+import android.content.Context
 import android.graphics.Point
 import android.graphics.SurfaceTexture
 import android.opengl.EGL14
@@ -32,8 +33,10 @@ class Render : SurfaceTexture.OnFrameAvailableListener {
     private val mEGLConfig = arrayOfNulls<EGLConfig>(1)
     private var mEglSurface: EGLSurface? = null
     private var mOESSurfaceTexture: SurfaceTexture? = null
+    private var mContext: Context? = null
 
-    fun init(textureView: TextureView, oesTextureId: Int) {
+    fun init(context:Context, textureView: TextureView, oesTextureId: Int) {
+        mContext = context
         mTextureView = textureView
         getFiltersStartPoints(mTextureView!!.width, mTextureView!!.height)
 
@@ -116,7 +119,7 @@ class Render : SurfaceTexture.OnFrameAvailableListener {
             throw RuntimeException("eglMakeCurrent failed! " + mEgl!!.eglGetError())
         }
 
-        mFilterEngine = TextureDrawer(mOESTextureId)
+        mFilterEngine = TextureDrawer(mContext!!, mOESTextureId)
         mDataBuffer = mFilterEngine!!.buffer
         mShaderProgram = mFilterEngine!!.mShaderProgram
     }
