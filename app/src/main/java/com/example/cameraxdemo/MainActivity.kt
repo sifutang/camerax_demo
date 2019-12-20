@@ -5,13 +5,15 @@ import android.content.pm.PackageManager
 import android.graphics.SurfaceTexture
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Handler
+import android.os.HandlerThread
 import android.util.Log
+import android.util.Size
 import android.view.TextureView
-import androidx.camera.core.CameraX
-import androidx.camera.core.Preview
-import androidx.camera.core.PreviewConfig
+import androidx.camera.core.*
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.example.cameraxdemo.util.SerialExecutor
 
 class MainActivity : AppCompatActivity() {
 
@@ -71,12 +73,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun startCamera() {
         Log.i(TAG, "startCamera: ")
-        val previewConfig = PreviewConfig.Builder()
-            .setLensFacing(CameraX.LensFacing.FRONT)
-            .build()
-        val preview = Preview(previewConfig)
+        val preview = createPreviewCase()
         preview.setOnPreviewOutputUpdateListener(Preview.OnPreviewOutputUpdateListener {
-            //            textureView.surfaceTexture = it.surfaceTexture
+//            mTextureView.surfaceTexture = it.surfaceTexture
             Log.d(TAG, "setOnPreviewOutputUpdateListener mTextureView.isAvailable = ${mTextureView.isAvailable}")
             if (mTextureView.isAvailable) {
                 createRender(it.surfaceTexture)
@@ -103,7 +102,10 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
-        CameraX.bindToLifecycle(this, preview)
+
+        val imageAnalysis = createImageAnalysisCase()
+        val imageCapture = createImageCaptureCase()
+        CameraX.bindToLifecycle(this, preview, imageCapture, imageAnalysis)
     }
 
     private fun createRender(surfaceTexture: SurfaceTexture) {
@@ -114,5 +116,39 @@ class MainActivity : AppCompatActivity() {
         }
 
         mRender?.resume(surfaceTexture)
+    }
+
+    private fun createPreviewCase():Preview {
+        val previewConfig = PreviewConfig.Builder()
+            .setLensFacing(CameraX.LensFacing.FRONT)
+            .build()
+        return Preview(previewConfig)
+    }
+
+    private fun createImageAnalysisCase():ImageAnalysis {
+        val imageAnalysisConfig = ImageAnalysisConfig.Builder()
+            .setLensFacing(CameraX.LensFacing.FRONT)
+            .setTargetResolution(Size(1280, 720))
+            .setImageReaderMode(ImageAnalysis.ImageReaderMode.ACQUIRE_LATEST_IMAGE)
+            .build()
+        val imageAnalysis = ImageAnalysis(imageAnalysisConfig)
+        val analysis = ImageAnalysis.Analyzer { image, rotationDegrees ->
+//            Log.d(TAG, "analyze: ${image?.timestamp}, rotationDegrees: $rotationDegrees")
+        }
+
+        val analysisThread = HandlerThread("image-analysis-thread")
+        analysisThread.start()
+        val analysisHandler = Handler(analysisThread.looper)
+        val executor = SerialExecutor(analysisHandler)
+        imageAnalysis.setAnalyzer(executor, analysis)
+        return imageAnalysis
+    }
+
+    private fun createImageCaptureCase():ImageCapture {
+        val imageCaptureBuildConfig = ImageCaptureConfig.Builder()
+            .setLensFacing(CameraX.LensFacing.FRONT)
+            .setTargetRotation(windowManager.defaultDisplay.rotation)
+            .build()
+        return ImageCapture(imageCaptureBuildConfig)
     }
 }
