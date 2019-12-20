@@ -65,18 +65,26 @@ class TextureDrawer(context: Context, OESTextureId: Int) {
                 mBuffer
             )
 
-            GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6)
+//            GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6)
+            GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
         }
     }
 
 
     companion object {
+//        private val vertexData = floatArrayOf(
+//            1f, 1f, 1f, 1f,
+//            -1f, 1f, 0f, 1f,
+//            -1f, -1f, 0f, 0f,
+//            1f, 1f, 1f, 1f,
+//            -1f, -1f, 0f, 0f,
+//            1f, -1f, 1f, 0f
+//        )
+
         private val vertexData = floatArrayOf(
-            1f, 1f, 1f, 1f,
             -1f, 1f, 0f, 1f,
             -1f, -1f, 0f, 0f,
             1f, 1f, 1f, 1f,
-            -1f, -1f, 0f, 0f,
             1f, -1f, 1f, 0f
         )
 

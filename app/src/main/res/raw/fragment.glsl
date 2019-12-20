@@ -11,8 +11,8 @@ void main() {
 //    gl_FragColor = vec4(fGrayColor, fGrayColor, fGrayColor, 1.0);
 
     // 暖色滤镜:暖色增强, 红色和绿色为暖色, 适当增强
-//    gl_FragColor = mask + vec4(0.3, 0.3, 0.0, 0.0);
+    gl_FragColor = mask + vec4(0.3, 0.3, 0.0, 0.0);
 
     // 冷色滤镜:冷色增强, 蓝色为冷色, 适当增强
-    gl_FragColor = mask + vec4(0.0, 0.0, 0.3, 0.0);
+//    gl_FragColor = mask + vec4(0.0, 0.0, 0.3, 0.0);
 }
