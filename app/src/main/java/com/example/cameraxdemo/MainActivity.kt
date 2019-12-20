@@ -8,8 +8,8 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
-import android.util.Size
 import android.view.TextureView
+import android.widget.TextView
 import androidx.camera.core.*
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -27,10 +27,29 @@ class MainActivity : AppCompatActivity() {
     }
 
     private var mRender: Render? = null
+    private var mPreview: Preview? = null
+    private var mImageAnalysis: ImageAnalysis? = null
+    private var mImageCapture: ImageCapture? = null
+    private var mLensFacing = CameraX.LensFacing.FRONT
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        initUI()
+    }
+
+    private fun initUI() {
+        findViewById<TextView>(R.id.camera_id_switcher)
+            .setOnClickListener {
+                mLensFacing = if (CameraX.LensFacing.FRONT == mLensFacing) {
+                    CameraX.LensFacing.BACK
+                } else {
+                    CameraX.LensFacing.FRONT
+                }
+
+                CameraX.unbindAll()
+                startCamera()
+            }
     }
 
     override fun onResume() {
@@ -73,9 +92,59 @@ class MainActivity : AppCompatActivity() {
 
     private fun startCamera() {
         Log.i(TAG, "startCamera: ")
-        val preview = createPreviewCase()
-        preview.setOnPreviewOutputUpdateListener(Preview.OnPreviewOutputUpdateListener {
-//            mTextureView.surfaceTexture = it.surfaceTexture
+        mPreview = createPreviewCase()
+        bindPreviewOutputUpdateListener(mPreview)
+        mImageCapture = createImageCaptureCase()
+        mImageAnalysis = createImageAnalysisCase()
+        CameraX.bindToLifecycle(this, mPreview, mImageCapture, mImageAnalysis)
+    }
+
+    private fun createRender(surfaceTexture: SurfaceTexture) {
+        if (mRender == null) {
+            mRender = Render()
+            mRender?.init(applicationContext, mTextureView)
+            Log.d(TAG, "create render.")
+        }
+
+        mRender?.resume(surfaceTexture)
+    }
+
+    private fun createPreviewCase():Preview {
+        val previewConfig = PreviewConfig.Builder()
+            .setLensFacing(mLensFacing)
+            .build()
+        return Preview(previewConfig)
+    }
+
+    private fun createImageAnalysisCase():ImageAnalysis {
+        val imageAnalysisConfig = ImageAnalysisConfig.Builder()
+            .setLensFacing(mLensFacing)
+            .setImageReaderMode(ImageAnalysis.ImageReaderMode.ACQUIRE_LATEST_IMAGE)
+            .build()
+        val imageAnalysis = ImageAnalysis(imageAnalysisConfig)
+        val analysis = ImageAnalysis.Analyzer { image, rotationDegrees ->
+//            Log.d(TAG, "analyze: ${image?.timestamp}, rotationDegrees: $rotationDegrees")
+        }
+
+        val analysisThread = HandlerThread("image-analysis-thread")
+        analysisThread.start()
+        val analysisHandler = Handler(analysisThread.looper)
+        val executor = SerialExecutor(analysisHandler)
+        imageAnalysis.setAnalyzer(executor, analysis)
+        return imageAnalysis
+    }
+
+    private fun createImageCaptureCase():ImageCapture {
+        val imageCaptureBuildConfig = ImageCaptureConfig.Builder()
+            .setLensFacing(mLensFacing)
+            .setTargetRotation(windowManager.defaultDisplay.rotation)
+            .build()
+        return ImageCapture(imageCaptureBuildConfig)
+    }
+
+    private fun bindPreviewOutputUpdateListener(preview: Preview?) {
+        preview?.setOnPreviewOutputUpdateListener(Preview.OnPreviewOutputUpdateListener {
+            //            mTextureView.surfaceTexture = it.surfaceTexture
             Log.d(TAG, "setOnPreviewOutputUpdateListener mTextureView.isAvailable = ${mTextureView.isAvailable}")
             if (mTextureView.isAvailable) {
                 createRender(it.surfaceTexture)
@@ -102,53 +171,5 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
-
-        val imageAnalysis = createImageAnalysisCase()
-        val imageCapture = createImageCaptureCase()
-        CameraX.bindToLifecycle(this, preview, imageCapture, imageAnalysis)
-    }
-
-    private fun createRender(surfaceTexture: SurfaceTexture) {
-        if (mRender == null) {
-            mRender = Render()
-            mRender?.init(applicationContext, mTextureView)
-            Log.d(TAG, "create render.")
-        }
-
-        mRender?.resume(surfaceTexture)
-    }
-
-    private fun createPreviewCase():Preview {
-        val previewConfig = PreviewConfig.Builder()
-            .setLensFacing(CameraX.LensFacing.FRONT)
-            .build()
-        return Preview(previewConfig)
-    }
-
-    private fun createImageAnalysisCase():ImageAnalysis {
-        val imageAnalysisConfig = ImageAnalysisConfig.Builder()
-            .setLensFacing(CameraX.LensFacing.FRONT)
-            .setTargetResolution(Size(1280, 720))
-            .setImageReaderMode(ImageAnalysis.ImageReaderMode.ACQUIRE_LATEST_IMAGE)
-            .build()
-        val imageAnalysis = ImageAnalysis(imageAnalysisConfig)
-        val analysis = ImageAnalysis.Analyzer { image, rotationDegrees ->
-//            Log.d(TAG, "analyze: ${image?.timestamp}, rotationDegrees: $rotationDegrees")
-        }
-
-        val analysisThread = HandlerThread("image-analysis-thread")
-        analysisThread.start()
-        val analysisHandler = Handler(analysisThread.looper)
-        val executor = SerialExecutor(analysisHandler)
-        imageAnalysis.setAnalyzer(executor, analysis)
-        return imageAnalysis
-    }
-
-    private fun createImageCaptureCase():ImageCapture {
-        val imageCaptureBuildConfig = ImageCaptureConfig.Builder()
-            .setLensFacing(CameraX.LensFacing.FRONT)
-            .setTargetRotation(windowManager.defaultDisplay.rotation)
-            .build()
-        return ImageCapture(imageCaptureBuildConfig)
     }
 }

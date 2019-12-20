@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">CameraXDemo</string>
+    <string name="camera_id_switch_item">Switch</string>
 </resources>
