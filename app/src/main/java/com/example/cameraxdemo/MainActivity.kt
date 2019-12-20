@@ -12,7 +12,6 @@ import androidx.camera.core.Preview
 import androidx.camera.core.PreviewConfig
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.example.cameraxdemo.util.TextResourceReader
 
 class MainActivity : AppCompatActivity() {
 
@@ -25,8 +24,7 @@ class MainActivity : AppCompatActivity() {
         findViewById<TextureView>(R.id.textureView)
     }
 
-    private var mOESTextureId = -1
-    private var mRender: Render = Render()
+    private var mRender: Render? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,6 +44,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
+        mRender?.pause()
         CameraX.unbindAll()
     }
 
@@ -80,7 +79,7 @@ class MainActivity : AppCompatActivity() {
             //            textureView.surfaceTexture = it.surfaceTexture
             Log.d(TAG, "setOnPreviewOutputUpdateListener mTextureView.isAvailable = ${mTextureView.isAvailable}")
             if (mTextureView.isAvailable) {
-                startGlContext(it.surfaceTexture)
+                createRender(it.surfaceTexture)
             } else{
                 mTextureView.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
                     override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture?, width: Int, height: Int) {
@@ -93,12 +92,13 @@ class MainActivity : AppCompatActivity() {
 
                     override fun onSurfaceTextureDestroyed(surface: SurfaceTexture?): Boolean {
                         Log.d(TAG, "onSurfaceTextureDestroyed: texture release...")
+                        mRender?.destroy()
                         return true
                     }
 
                     override fun onSurfaceTextureAvailable(surface: SurfaceTexture?, width: Int, height: Int) {
                         Log.d(TAG, "onSurfaceTextureAvailable: texture available")
-                        startGlContext(it.surfaceTexture)
+                        createRender(it.surfaceTexture)
                     }
                 }
             }
@@ -106,11 +106,13 @@ class MainActivity : AppCompatActivity() {
         CameraX.bindToLifecycle(this, preview)
     }
 
-    private fun startGlContext(surfaceTexture: SurfaceTexture) {
-        if (mOESTextureId == -1) {
-            mOESTextureId = TextureDrawer.createOESTextureObject()
-            mRender.init(applicationContext, mTextureView, mOESTextureId)
-            mRender.initOESTexture(surfaceTexture)
+    private fun createRender(surfaceTexture: SurfaceTexture) {
+        if (mRender == null) {
+            mRender = Render()
+            mRender?.init(applicationContext, mTextureView)
+            Log.d(TAG, "create render.")
         }
+
+        mRender?.resume(surfaceTexture)
     }
 }
