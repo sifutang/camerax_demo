@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.graphics.SurfaceTexture
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Environment
 import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
@@ -14,6 +15,7 @@ import androidx.camera.core.*
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.cameraxdemo.util.SerialExecutor
+import java.io.File
 
 class MainActivity : AppCompatActivity() {
 
@@ -30,11 +32,28 @@ class MainActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.camera_id_switcher)
     }
 
+    private val mCaptureTextView:TextView by lazy {
+        findViewById<TextView>(R.id.camera_capture_item)
+    }
+
     private var mRender: Render? = null
     private var mPreview: Preview? = null
     private var mImageAnalysis: ImageAnalysis? = null
     private var mImageCapture: ImageCapture? = null
     private var mLensFacing = CameraX.LensFacing.FRONT
+
+    private val mHandlerThread: HandlerThread
+        get() {
+            val workThread = HandlerThread("work-thread")
+            workThread.start()
+            return workThread
+        }
+
+    private val mExecutor: SerialExecutor
+        get() {
+            val analysisHandler = Handler(mHandlerThread.looper)
+            return SerialExecutor(analysisHandler)
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,6 +73,30 @@ class MainActivity : AppCompatActivity() {
             CameraX.unbindAll()
             startCamera()
         }
+
+        mCaptureTextView.setOnClickListener {
+            val file = File("${Environment.getExternalStorageDirectory().absoluteFile}/camerax/test.jpg")
+            if (file.exists()) {
+                file.delete()
+            }
+
+            mImageCapture?.takePicture(file,
+                mExecutor,
+                object : ImageCapture.OnImageSavedListener {
+                    override fun onImageSaved(file: File) {
+                        Log.d(TAG, "onImageSaved: ${file.path}")
+                    }
+
+                    override fun onError(
+                        imageCaptureError: ImageCapture.ImageCaptureError,
+                        message: String,
+                        cause: Throwable?
+                    ) {
+                        Log.d(TAG, "onError: $message")
+                        cause?.printStackTrace()
+                    }
+                })
+        }
     }
 
     override fun onResume() {
@@ -61,7 +104,8 @@ class MainActivity : AppCompatActivity() {
 
         if (!hasCameraPermission()) {
             ActivityCompat.requestPermissions(this,
-                arrayOf(Manifest.permission.CAMERA), REQUEST_CAMERA)
+                arrayOf(Manifest.permission.CAMERA,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE), REQUEST_CAMERA)
         } else {
             startCamera()
         }
@@ -71,6 +115,11 @@ class MainActivity : AppCompatActivity() {
         super.onPause()
         mRender?.pause()
         CameraX.unbindAll()
+    }
+
+    override fun onDestroy() {
+        mHandlerThread.quitSafely()
+        super.onDestroy()
     }
 
     override fun onRequestPermissionsResult(
@@ -130,11 +179,7 @@ class MainActivity : AppCompatActivity() {
 //            Log.d(TAG, "analyze: ${image?.timestamp}, rotationDegrees: $rotationDegrees")
         }
 
-        val analysisThread = HandlerThread("image-analysis-thread")
-        analysisThread.start()
-        val analysisHandler = Handler(analysisThread.looper)
-        val executor = SerialExecutor(analysisHandler)
-        imageAnalysis.setAnalyzer(executor, analysis)
+        imageAnalysis.setAnalyzer(mExecutor, analysis)
         return imageAnalysis
     }
 
