@@ -21,7 +21,8 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "MainActivity"
-        private const val REQUEST_CAMERA = 1
+        private const val REQUEST_CAMERA = 1000
+        private const val REQUEST_STORAGE = 1001
     }
 
     private val mTextureView:TextureView by lazy {
@@ -59,6 +60,11 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         initUI()
+
+        if (!hasStoragePermission()) {
+            ActivityCompat.requestPermissions(this,
+                arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), REQUEST_STORAGE)
+        }
     }
 
     private fun initUI() {
@@ -104,8 +110,7 @@ class MainActivity : AppCompatActivity() {
 
         if (!hasCameraPermission()) {
             ActivityCompat.requestPermissions(this,
-                arrayOf(Manifest.permission.CAMERA,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE), REQUEST_CAMERA)
+                arrayOf(Manifest.permission.CAMERA), REQUEST_CAMERA)
         } else {
             startCamera()
         }
@@ -133,6 +138,8 @@ class MainActivity : AppCompatActivity() {
             if (mTextureView.isAvailable) {
                 Log.e(TAG, "onRequestPermissionsResult: ")
             }
+        } else if (requestCode == REQUEST_STORAGE && grantResults.size == 1) {
+            Log.d(TAG, "onRequestPermissionsResult: REQUEST_STORAGE result = ${grantResults[0]}")
         } else {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         }
@@ -140,7 +147,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun hasCameraPermission(): Boolean {
         return ContextCompat.checkSelfPermission(
-            this, Manifest.permission.CAMERA)== PackageManager.PERMISSION_GRANTED
+            this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun hasStoragePermission(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
     }
 
     private fun startCamera() {
@@ -187,6 +199,7 @@ class MainActivity : AppCompatActivity() {
         val imageCaptureBuildConfig = ImageCaptureConfig.Builder()
             .setLensFacing(mLensFacing)
             .setTargetRotation(windowManager.defaultDisplay.rotation)
+            .setCaptureMode(ImageCapture.CaptureMode.MAX_QUALITY)
             .build()
         return ImageCapture(imageCaptureBuildConfig)
     }
