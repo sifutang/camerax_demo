@@ -26,6 +26,10 @@ class MainActivity : AppCompatActivity() {
         findViewById<TextureView>(R.id.textureView)
     }
 
+    private val mIdSwitcher:TextView by lazy {
+        findViewById<TextView>(R.id.camera_id_switcher)
+    }
+
     private var mRender: Render? = null
     private var mPreview: Preview? = null
     private var mImageAnalysis: ImageAnalysis? = null
@@ -39,17 +43,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initUI() {
-        findViewById<TextView>(R.id.camera_id_switcher)
-            .setOnClickListener {
-                mLensFacing = if (CameraX.LensFacing.FRONT == mLensFacing) {
-                    CameraX.LensFacing.BACK
-                } else {
-                    CameraX.LensFacing.FRONT
-                }
-
-                CameraX.unbindAll()
-                startCamera()
+        mIdSwitcher.setOnClickListener {
+            mIdSwitcher.isEnabled = false
+            mLensFacing = if (CameraX.LensFacing.FRONT == mLensFacing) {
+                CameraX.LensFacing.BACK
+            } else {
+                CameraX.LensFacing.FRONT
             }
+
+            CameraX.unbindAll()
+            startCamera()
+        }
     }
 
     override fun onResume() {
@@ -148,6 +152,7 @@ class MainActivity : AppCompatActivity() {
             Log.d(TAG, "setOnPreviewOutputUpdateListener mTextureView.isAvailable = ${mTextureView.isAvailable}")
             if (mTextureView.isAvailable) {
                 createRender(it.surfaceTexture)
+                mIdSwitcher.isEnabled = true
             } else{
                 mTextureView.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
                     override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture?, width: Int, height: Int) {
@@ -167,6 +172,7 @@ class MainActivity : AppCompatActivity() {
                     override fun onSurfaceTextureAvailable(surface: SurfaceTexture?, width: Int, height: Int) {
                         Log.d(TAG, "onSurfaceTextureAvailable: texture available")
                         createRender(it.surfaceTexture)
+                        mIdSwitcher.isEnabled = true
                     }
                 }
             }

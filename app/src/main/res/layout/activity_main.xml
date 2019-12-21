@@ -21,9 +21,10 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:layout_marginEnd="24dp"
-        android:textSize="30sp"
+        android:textSize="16sp"
         android:text="@string/camera_id_switch_item"
-        android:background="@color/colorAccent"
+        android:background="@drawable/selector_switch_id_btn_bg_color"
+        android:enabled="false"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
