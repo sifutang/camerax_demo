@@ -19,6 +19,7 @@ class TextureDrawer(context: Context, OESTextureId: Int) {
     private var aTextureCoordLocation = -1
     private var uTextureMatrixLocation = -1
     private var uTextureSamplerLocation = -1
+    private var uEffectIndexLocation = 0
 
     init {
         mOESTextureId = OESTextureId
@@ -35,14 +36,17 @@ class TextureDrawer(context: Context, OESTextureId: Int) {
         aTextureCoordLocation = GLES20.glGetAttribLocation(mShaderProgram, TEXTURE_COORD_ATTRIBUTE)
         uTextureMatrixLocation = GLES20.glGetUniformLocation(mShaderProgram, TEXTURE_MATRIX_UNIFORM)
         uTextureSamplerLocation = GLES20.glGetUniformLocation(mShaderProgram, TEXTURE_SAMPLER_UNIFORM)
+        uEffectIndexLocation = GLES20.glGetUniformLocation(mShaderProgram, EFFECT_INDEX)
+
     }
 
-    fun drawTexture(transformMatrix: FloatArray) {
+    fun drawTexture(transformMatrix: FloatArray, effectIndex: Int) {
         GLES20.glUseProgram(mShaderProgram)
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, mOESTextureId)
         GLES20.glUniform1i(uTextureSamplerLocation, 0)
         GLES20.glUniformMatrix4fv(uTextureMatrixLocation, 1, false, transformMatrix, 0)
+        GLES20.glUniform1i(uEffectIndexLocation, effectIndex)
 
         if (mBuffer != null) {
             mBuffer.position(0)
@@ -69,6 +73,10 @@ class TextureDrawer(context: Context, OESTextureId: Int) {
         }
     }
 
+    fun drawTexture(transformMatrix: FloatArray) {
+        drawTexture(transformMatrix, 0)
+    }
+
 
     companion object {
         private val vertexData = floatArrayOf(
@@ -78,6 +86,7 @@ class TextureDrawer(context: Context, OESTextureId: Int) {
             1f, -1f, 1f, 0f
         )
 
+        private const val EFFECT_INDEX = "uEffectIndex"
         private const val POSITION_ATTRIBUTE = "aPosition"
         private const val TEXTURE_COORD_ATTRIBUTE = "aTextureCoordinate"
         private const val TEXTURE_MATRIX_UNIFORM = "uTextureMatrix"

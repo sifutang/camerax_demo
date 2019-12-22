@@ -173,7 +173,7 @@ class Render : SurfaceTexture.OnFrameAvailableListener {
             GLES20.glViewport(
                 mFiltersStartPoints!![i].x, mFiltersStartPoints!![i].y,
                 mTextureView!!.width / FILTER_ITEM_COUNT, mTextureView!!.height / 4)
-            mFilterEngine!!.drawTexture(transformMatrix)
+            mFilterEngine!!.drawTexture(transformMatrix, i)
         }
         mEgl!!.eglSwapBuffers(mEGLDisplay, mEglSurface)
     }

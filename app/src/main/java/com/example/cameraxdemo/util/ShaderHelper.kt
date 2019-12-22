@@ -7,7 +7,7 @@ class ShaderHelper {
 
     companion object {
         private const val TAG = "ShaderHelper"
-        private const val DEBUG = false
+        private const val DEBUG = true
 
         fun buildProgram(vertexShaderSource: String, fragmentShaderSource: String): Int {
             // Compile the shader
