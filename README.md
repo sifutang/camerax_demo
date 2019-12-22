@@ -173,6 +173,7 @@ CameraX目前处于alpha版本，在使用时需要先添加依赖：
 
     vec4 mask = texture2D(uTextureSampler, vTextureCoord);
     gl_FragColor = mask + vec4(0.0, 0.0, 0.3, 0.0);
+
 ```
 
 4. 马赛克:把图片的一个相当大小区域用同一个点的颜色来表示,通过降低图像的分辨率,从而使图像一些细节隐藏起来
@@ -183,6 +184,7 @@ CameraX目前处于alpha版本，在使用时需要先添加依赖：
     vec2 mosaicXY = vec2(floor(pixelXY.x / mosaicSize.x) * mosaicSize.x, floor(pixelXY.y / mosaicSize.y) * mosaicSize.y);
     vec2 newPixelStCoord = vec2(mosaicXY.x / previewSize.x, mosaicXY.y / previewSize.y);
     gl_FragColor = texture2D(uTextureSampler, newPixelStCoord);
+
 ```
 
 
