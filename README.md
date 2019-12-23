@@ -1,5 +1,8 @@
 # 探索CameraX在应用端的使用
 
+## Demo效果
+![Demo效果](./demo.png)
+
 ## 起源
 针对相机开发涉及专业知识多，且Camera2 api架构复杂等痛点，
 在今年的Google I/O大会上，Google推出了一个新的Jetpack组件--CameraX，这个支持包的作用为:

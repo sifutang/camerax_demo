@@ -5,7 +5,9 @@ uniform int uEffectIndex;
 uniform samplerExternalOES uTextureSampler;
 varying vec2 vTextureCoord;
 
+// 此处预览size写死, 实际应该从外部传过来
 const vec2 previewSize = vec2(2160.0, 1080.0);
+
 const vec2 mosaicSize = vec2(64.0, 64.0);
 
 void main() {
