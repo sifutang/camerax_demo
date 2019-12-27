@@ -8,11 +8,20 @@ varying vec2 vTextureCoord;
 
 // 此处预览size写死, 实际应该从外部传过来
 const vec2 previewSize = vec2(2160.0, 1080.0);
-
 const vec2 mosaicSize = vec2(64.0, 64.0);
 
+const float row = 2.0;
+const float col = 2.0;
+
 void main() {
-    if(uEffectIndex == 1) {
+    if (uEffectIndex == -1) {
+        gl_FragColor = texture2D(uTextureSampler, vTextureCoord);
+    } else if(uEffectIndex == 0) {
+        float xPosScaled = vTextureCoord.x * row;
+        float yPosScaled = vTextureCoord.y * col;
+        vec2 coord = vec2((xPosScaled - floor(xPosScaled)), (yPosScaled - floor(yPosScaled)));
+        gl_FragColor = texture2D(uTextureSampler, coord);
+    } else if (uEffectIndex == 1) {
         // 灰度滤镜:权值法, 人眼对红绿蓝色敏感程度不一样, 绿色 > 红色 > 蓝色
         vec4 mask = texture2D(uTextureSampler, vTextureCoord);
         float fGrayColor = (0.3 * mask.r + 0.59 * mask.g + 0.11 * mask.b);
@@ -36,7 +45,5 @@ void main() {
         float lightUpColor = abs(sin(uTimestamp / 1000.0)) / 4.0;//[0, 0.25]
         vec4 mask = texture2D(uTextureSampler, vTextureCoord);
         gl_FragColor = mask + vec4(lightUpColor, lightUpColor, lightUpColor, 1.0);
-    } else {
-        gl_FragColor = texture2D(uTextureSampler, vTextureCoord);
     }
 }

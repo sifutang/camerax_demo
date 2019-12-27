@@ -76,7 +76,7 @@ class TextureDrawer(context: Context, OESTextureId: Int) {
     }
 
     fun drawTexture(transformMatrix: FloatArray, timestamp:Float) {
-        drawTexture(transformMatrix, 0, timestamp)
+        drawTexture(transformMatrix, -1, timestamp)
     }
 
 
