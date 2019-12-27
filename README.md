@@ -190,6 +190,15 @@ CameraX目前处于alpha版本，在使用时需要先添加依赖：
 
 ```
 
+5. 分镜:分镜的实现主要是重新映射纹理的采样关系,   
+比如说2x2的分镜效果,纹理坐标x轴\[0.0, 0.5]采样\[0.0, 1.0]的纹理, \[0.5, 1.0]也采样\[0.0, 1.0]的纹理, y轴也是同样处理
 
+```
+
+    float xPosScaled = vTextureCoord.x * row;
+    float yPosScaled = vTextureCoord.y * col;
+    vec2 coord = vec2((xPosScaled - floor(xPosScaled)), (yPosScaled - floor(yPosScaled)));
+    gl_FragColor = texture2D(uTextureSampler, coord);
+```
 
 
