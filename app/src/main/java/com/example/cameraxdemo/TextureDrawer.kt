@@ -19,6 +19,7 @@ class TextureDrawer(context: Context, OESTextureId: Int) {
     private var aTextureCoordLocation = -1
     private var uTextureMatrixLocation = -1
     private var uTextureSamplerLocation = -1
+    private var uTimestampLocation = -1;
     private var uEffectIndexLocation = 0
 
     init {
@@ -37,16 +38,17 @@ class TextureDrawer(context: Context, OESTextureId: Int) {
         uTextureMatrixLocation = GLES20.glGetUniformLocation(mShaderProgram, TEXTURE_MATRIX_UNIFORM)
         uTextureSamplerLocation = GLES20.glGetUniformLocation(mShaderProgram, TEXTURE_SAMPLER_UNIFORM)
         uEffectIndexLocation = GLES20.glGetUniformLocation(mShaderProgram, EFFECT_INDEX)
-
+        uTimestampLocation = GLES20.glGetUniformLocation(mShaderProgram, TIME_STAMP)
     }
 
-    fun drawTexture(transformMatrix: FloatArray, effectIndex: Int) {
+    fun drawTexture(transformMatrix: FloatArray, effectIndex: Int, timestamp:Float) {
         GLES20.glUseProgram(mShaderProgram)
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, mOESTextureId)
         GLES20.glUniform1i(uTextureSamplerLocation, 0)
         GLES20.glUniformMatrix4fv(uTextureMatrixLocation, 1, false, transformMatrix, 0)
         GLES20.glUniform1i(uEffectIndexLocation, effectIndex)
+        GLES20.glUniform1f(uTimestampLocation, timestamp)
 
         if (mBuffer != null) {
             mBuffer.position(0)
@@ -73,8 +75,8 @@ class TextureDrawer(context: Context, OESTextureId: Int) {
         }
     }
 
-    fun drawTexture(transformMatrix: FloatArray) {
-        drawTexture(transformMatrix, 0)
+    fun drawTexture(transformMatrix: FloatArray, timestamp:Float) {
+        drawTexture(transformMatrix, 0, timestamp)
     }
 
 
@@ -86,9 +88,10 @@ class TextureDrawer(context: Context, OESTextureId: Int) {
             1f, -1f, 1f, 0f
         )
 
-        private const val EFFECT_INDEX = "uEffectIndex"
         private const val POSITION_ATTRIBUTE = "aPosition"
         private const val TEXTURE_COORD_ATTRIBUTE = "aTextureCoordinate"
+        private const val EFFECT_INDEX = "uEffectIndex"
+        private const val TIME_STAMP = "uTimestamp"
         private const val TEXTURE_MATRIX_UNIFORM = "uTextureMatrix"
         private const val TEXTURE_SAMPLER_UNIFORM = "uTextureSampler"
     }

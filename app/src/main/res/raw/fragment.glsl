@@ -2,6 +2,7 @@
 precision mediump float;
 
 uniform int uEffectIndex;
+uniform float uTimestamp;
 uniform samplerExternalOES uTextureSampler;
 varying vec2 vTextureCoord;
 
@@ -31,6 +32,10 @@ void main() {
         vec2 mosaicXY = vec2(floor(pixelXY.x / mosaicSize.x) * mosaicSize.x, floor(pixelXY.y / mosaicSize.y) * mosaicSize.y);
         vec2 newPixelStCoord = vec2(mosaicXY.x / previewSize.x, mosaicXY.y / previewSize.y);
         gl_FragColor = texture2D(uTextureSampler, newPixelStCoord);
+    } else if(uEffectIndex == 5) {
+        float lightUpColor = abs(sin(uTimestamp / 1000.0)) / 4.0;//[0, 0.25]
+        vec4 mask = texture2D(uTextureSampler, vTextureCoord);
+        gl_FragColor = mask + vec4(lightUpColor, lightUpColor, lightUpColor, 1.0);
     } else {
         gl_FragColor = texture2D(uTextureSampler, vTextureCoord);
     }

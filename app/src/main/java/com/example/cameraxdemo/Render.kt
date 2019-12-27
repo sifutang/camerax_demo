@@ -23,7 +23,8 @@ class Render : SurfaceTexture.OnFrameAvailableListener {
     private var mTextureView: TextureView? = null
     private var mOESTextureId: Int = 0
     private var mFilterEngine: TextureDrawer? = null
-    private val transformMatrix = FloatArray(16)
+    private val mTransformMatrix = FloatArray(16)
+    private var mTimestamp = 0f
 
     private var mEgl: EGL10? = null
     private var mEGLDisplay = EGL10.EGL_NO_DISPLAY
@@ -160,20 +161,21 @@ class Render : SurfaceTexture.OnFrameAvailableListener {
     private fun drawFrame() {
         if (mOESSurfaceTexture != null) {
             mOESSurfaceTexture!!.updateTexImage()
-            mOESSurfaceTexture!!.getTransformMatrix(transformMatrix)
+            mOESSurfaceTexture!!.getTransformMatrix(mTransformMatrix)
         }
         mEgl!!.eglMakeCurrent(mEGLDisplay, mEglSurface, mEglSurface, mEGLContext)
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
         GLES20.glClearColor(1f, 1f, 0f, 0f)
 
-        GLES20.glViewport(0, 0, mTextureView!!.width, mTextureView!!.height);
-        mFilterEngine!!.drawTexture(transformMatrix)
+        GLES20.glViewport(0, 0, mTextureView!!.width, mTextureView!!.height)
+        mTimestamp = System.currentTimeMillis().toFloat() - mTimestamp
+        mFilterEngine!!.drawTexture(mTransformMatrix, mTimestamp)
 
         for (i in 0 until mFiltersStartPoints!!.size) {
             GLES20.glViewport(
                 mFiltersStartPoints!![i].x, mFiltersStartPoints!![i].y,
                 mTextureView!!.width / FILTER_ITEM_COUNT, mTextureView!!.height / 4)
-            mFilterEngine!!.drawTexture(transformMatrix, i)
+            mFilterEngine!!.drawTexture(mTransformMatrix, i, mTimestamp)
         }
         mEgl!!.eglSwapBuffers(mEGLDisplay, mEglSurface)
     }
@@ -204,7 +206,7 @@ class Render : SurfaceTexture.OnFrameAvailableListener {
         private const val MSG_DETACH = 3
         private const val MSG_ATTACH = 4
 
-        private const val FILTER_ITEM_COUNT = 5
+        private const val FILTER_ITEM_COUNT = 6
 
         const val TAG = "Render"
     }
