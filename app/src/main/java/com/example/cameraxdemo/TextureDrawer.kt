@@ -12,6 +12,7 @@ import java.nio.FloatBuffer
 class TextureDrawer(context: Context, OESTextureId: Int) {
 
     private val mBuffer: FloatBuffer?
+
     private var mOESTextureId = -1
     private var mShaderProgram = -1
 
@@ -35,6 +36,7 @@ class TextureDrawer(context: Context, OESTextureId: Int) {
 
         aPositionLocation = GLES20.glGetAttribLocation(mShaderProgram, POSITION_ATTRIBUTE)
         aTextureCoordLocation = GLES20.glGetAttribLocation(mShaderProgram, TEXTURE_COORD_ATTRIBUTE)
+
         uTextureMatrixLocation = GLES20.glGetUniformLocation(mShaderProgram, TEXTURE_MATRIX_UNIFORM)
         uTextureSamplerLocation = GLES20.glGetUniformLocation(mShaderProgram, TEXTURE_SAMPLER_UNIFORM)
         uEffectIndexLocation = GLES20.glGetUniformLocation(mShaderProgram, EFFECT_INDEX)
@@ -72,6 +74,9 @@ class TextureDrawer(context: Context, OESTextureId: Int) {
             )
 
             GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
+
+            GLES20.glDisableVertexAttribArray(aPositionLocation)
+            GLES20.glDisableVertexAttribArray(aTextureCoordLocation)
         }
     }
 

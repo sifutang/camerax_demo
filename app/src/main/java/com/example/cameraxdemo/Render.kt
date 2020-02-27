@@ -10,6 +10,7 @@ import android.os.HandlerThread
 import android.os.Message
 import android.util.Log
 import android.view.TextureView
+import com.example.cameraxdemo.objects.WaterMark
 import com.example.cameraxdemo.util.OpenGlUtils
 import javax.microedition.khronos.egl.EGL10
 import javax.microedition.khronos.egl.EGLConfig
@@ -23,6 +24,7 @@ class Render : SurfaceTexture.OnFrameAvailableListener {
     private var mTextureView: TextureView? = null
     private var mOESTextureId: Int = 0
     private var mFilterEngine: TextureDrawer? = null
+    private var mWaterMark: WaterMark? = null
     private val mTransformMatrix = FloatArray(16)
     private var mTimestamp = 0f
 
@@ -155,6 +157,7 @@ class Render : SurfaceTexture.OnFrameAvailableListener {
         }
 
         mFilterEngine = TextureDrawer(mContext!!, mOESTextureId)
+        mWaterMark = WaterMark(mContext!!)
         Log.d(TAG, "init egl context")
     }
 
@@ -170,6 +173,7 @@ class Render : SurfaceTexture.OnFrameAvailableListener {
         GLES20.glViewport(0, 0, mTextureView!!.width, mTextureView!!.height)
         mTimestamp = System.currentTimeMillis().toFloat() - mTimestamp
         mFilterEngine!!.drawTexture(mTransformMatrix, mTimestamp)
+        mWaterMark?.drawSelf()
 
         for (i in 0 until mFiltersStartPoints!!.size) {
             GLES20.glViewport(

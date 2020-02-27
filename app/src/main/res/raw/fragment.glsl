@@ -3,7 +3,9 @@ precision mediump float;
 
 uniform int uEffectIndex;
 uniform float uTimestamp;
+
 uniform samplerExternalOES uTextureSampler;
+
 varying vec2 vTextureCoord;
 
 // 此处预览size写死, 实际应该从外部传过来
