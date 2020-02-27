@@ -20,7 +20,17 @@ void main() {
         float xPosScaled = vTextureCoord.x * row;
         float yPosScaled = vTextureCoord.y * col;
         vec2 coord = vec2((xPosScaled - floor(xPosScaled)), (yPosScaled - floor(yPosScaled)));
-        gl_FragColor = texture2D(uTextureSampler, coord);
+        vec4 color = texture2D(uTextureSampler, coord);
+
+        float borderWidth = 0.01;
+        // x >= borderWitdh && x < 1.0 - borderWidth && y >= borderWidth && y < 1.0 - borderWidth
+        // step(edge, x): x > egde, return 1.0, else 0.0
+        float isNotBorder = step(borderWidth, coord.x)
+        * step(coord.x, 1.0 - borderWidth)
+        * step(borderWidth, coord.y)
+        * step(coord.y, 1.0 - borderWidth);
+        // mix(x, y, a) => x * (1 - a) + y * a
+        gl_FragColor = mix(vec4(1.0), color, isNotBorder);
     } else if (uEffectIndex == 1) {
         // 灰度滤镜:权值法, 人眼对红绿蓝色敏感程度不一样, 绿色 > 红色 > 蓝色
         vec4 mask = texture2D(uTextureSampler, vTextureCoord);
