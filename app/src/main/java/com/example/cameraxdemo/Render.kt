@@ -158,6 +158,7 @@ class Render : SurfaceTexture.OnFrameAvailableListener {
 
         mFilterEngine = TextureDrawer(mContext!!, mOESTextureId)
         mWaterMark = WaterMark(mContext!!)
+        mWaterMark?.renderSize(mTextureView!!.width, mTextureView!!.height)
         Log.d(TAG, "init egl context")
     }
 

@@ -3,6 +3,7 @@ package com.example.cameraxdemo.objects
 import android.content.Context
 import android.opengl.GLES20
 import android.opengl.Matrix
+import android.util.Log
 import com.example.cameraxdemo.R
 import com.example.cameraxdemo.util.ShaderHelper
 import com.example.cameraxdemo.util.TextResourceReader
@@ -21,6 +22,7 @@ class WaterMark(context: Context) {
              1f,  1f, 1f, 0f
         )
 
+        private const val TAG = "WaterMark"
         private const val POSITION_ATTRIBUTE = "aPosition"
         private const val COORDINATE = "aWaterMarkTextureCoordinate"
         private const val SAMPLER = "sWaterMarkSampler"
@@ -30,7 +32,11 @@ class WaterMark(context: Context) {
     private val mWaterMarkBuffer:FloatBuffer?
     private val mTextureId:Int?
 
-    private var mWaterMarkModelMatrix = Array(16) { 0.0f }.toFloatArray()
+    private var mMVPMatrix = Array(16) { 0.0f }.toFloatArray()
+    private var mModelMatrix = Array(16) { 0.0f }.toFloatArray()
+    private var mViewMatrix = Array(16) { 0.0f }.toFloatArray()
+    private var mProjectionMatrix = Array(16) { 0.0f }.toFloatArray()
+
     private var mShaderProgram = -1
     private var mPositionLoc = -1;
     private var mSamplerLoc = -1;
@@ -43,9 +49,6 @@ class WaterMark(context: Context) {
             .asFloatBuffer()
         mWaterMarkBuffer.put(WATER_MARK_DATA, 0, WATER_MARK_DATA.size).position(0)
         mTextureId = TextureHelper.loadTexture(context, R.drawable.watermark_logo)
-        Matrix.setIdentityM(mWaterMarkModelMatrix, 0)
-        Matrix.translateM(mWaterMarkModelMatrix, 0, -0.8f, 0.8f, 0f)
-        Matrix.scaleM(mWaterMarkModelMatrix, 0, 1 / 5f, 1 / 5f, 1.0f)
 
         val vertexShader = TextResourceReader.readTextFileFromResource(context, R.raw.vertex_water_mark)
         val fragmentShader = TextResourceReader.readTextFileFromResource(context, R.raw.fragment_water_mark)
@@ -55,6 +58,26 @@ class WaterMark(context: Context) {
         mCoordinateLoc = GLES20.glGetAttribLocation(mShaderProgram, COORDINATE)
         mSamplerLoc = GLES20.glGetUniformLocation(mShaderProgram, SAMPLER)
         mMvpMatrixLoc = GLES20.glGetUniformLocation(mShaderProgram, MVP_MATRIX)
+    }
+
+    fun renderSize(width: Int, height: Int) {
+        Log.d(TAG, "renderSize: width = $width, height = $height")
+        Matrix.setLookAtM(mViewMatrix, 0,
+            0F, 0F, 7F,
+            0F, 0F, 0F,
+            0F, 1F, 0F)
+
+        val ratio = 1F * width / height
+        Matrix.frustumM(mProjectionMatrix, 0,
+            -ratio, ratio, -1F, 1F, 3F, 7F)
+
+        Matrix.setIdentityM(mModelMatrix, 0)
+        Matrix.translateM(mModelMatrix, 0, -0.8f, 2f, 0f)
+        Matrix.scaleM(mModelMatrix, 0, 1 / 5f, 1 / 5f, 1.0f)
+
+        val tmpMatrix = Array(16) {0.0f}.toFloatArray()
+        Matrix.multiplyMM(tmpMatrix, 0, mViewMatrix, 0, mModelMatrix, 0)
+        Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, tmpMatrix, 0)
     }
 
     fun drawSelf() {
@@ -68,7 +91,7 @@ class WaterMark(context: Context) {
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureId!!)
         GLES20.glUniform1i(mSamplerLoc, 0)
         // mvp matrix
-        GLES20.glUniformMatrix4fv(mMvpMatrixLoc, 1, false, mWaterMarkModelMatrix, 0)
+        GLES20.glUniformMatrix4fv(mMvpMatrixLoc, 1, false, mMVPMatrix, 0)
         // position
         mWaterMarkBuffer?.position(0)
         GLES20.glEnableVertexAttribArray(mPositionLoc)
